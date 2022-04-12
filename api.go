@@ -1,5 +1,10 @@
 package eureka_client
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Port struct {
 	Port    int    `json:"$"`
 	Enabled string `json:"@enabled"`
@@ -53,6 +58,70 @@ type Instance struct {
 	LastUpdatedTimestamp          string                 `json:"lastUpdatedTimestamp,omitempty"`
 	LastDirtyTimestamp            string                 `json:"lastDirtyTimestamp,omitempty"`
 	ActionType                    string                 `json:"actionType,omitempty"`
+}
+
+type InstanceOption func(ins *Instance)
+
+func NewInstance(app string, port int, opts ...InstanceOption) (*Instance, error) {
+	app = strings.ToLower(app)
+	ip, ok := GetLocalIP()
+	if !ok {
+		return nil, fmt.Errorf("cannot get local ip")
+	}
+	url := fmt.Sprintf("http://%s:%d", ip, port)
+	ins := &Instance{
+		InstanceId:       fmt.Sprintf("%s:%s:%d", ip, app, port),
+		HostName:         ip,
+		App:              app,
+		IpAddr:           ip,
+		Status:           "UP",      // TODO: enum
+		OverriddenStatus: "UNKNOWN", // TODO: enum
+		Port: &Port{
+			Port:    port,
+			Enabled: "true",
+		}, // TODO: bool
+		SecurePort: nil,
+		CountryId:  0,
+		DataCenterInfo: &DataCenterInfo{
+			Name:  "MyOwn",
+			Class: "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+		},
+		LeaseInfo: &LeaseInfo{
+			RenewalIntervalInSecs: 30,
+			DurationInSecs:        15,
+		},
+		VipAddress:       app,
+		SecureVipAddress: app,
+		Metadata: map[string]interface{}{
+			"VERSION":              "0.1.0",
+			"NODE_GROUP_ID":        0,
+			"PRODUCT_CODE":         "DEFAULT",
+			"PRODUCT_VERSION_CODE": "DEFAULT",
+			"PRODUCT_ENV_CODE":     "DEFAULT",
+			"SERVICE_VERSION_CODE": "DEFAULT",
+		},
+		HomePageUrl:   url,
+		StatusPageUrl: url + "/info",
+	}
+
+	for _, opt := range opts {
+		opt(ins)
+	}
+
+	return ins, nil
+}
+
+func WithIP(ip string) InstanceOption {
+	return func(ins *Instance) {
+		port := ins.Port.Port
+		url := fmt.Sprintf("http://%s:%d", ip, port)
+
+		ins.InstanceId = fmt.Sprintf("%s:%s:%d", ip, ins.App, port)
+		ins.HostName = ip
+		ins.IpAddr = ip
+		ins.HomePageUrl = url
+		ins.StatusPageUrl = url + "/info"
+	}
 }
 
 type Application struct {
