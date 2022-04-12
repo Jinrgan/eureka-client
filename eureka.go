@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const appURI = "/apps/"
+const appURI = "/apps"
 
 // 调用 eureka 服务端 rest API
 // https://github.com/Netflix/eureka/wiki/Eureka-REST-operations
@@ -21,23 +21,41 @@ const appURI = "/apps/"
 type InstanceOption func(ins *Instance)
 
 func NewInstance(app, ip string, port int, opts ...InstanceOption) *Instance {
+	app = strings.ToLower(app)
+	url := fmt.Sprintf("http://%s:%d", ip, port)
 	ins := &Instance{
 		InstanceId:       fmt.Sprintf("%s:%s:%d", ip, app, port),
 		HostName:         ip,
-		App:              strings.ToLower(app),
-		Status:           "UP",                   // TODO: enum
-		OverriddenStatus: "UNKNOWN",              // TODO: enum
-		Port:             &Port{Enabled: "true"}, // TODO: bool
-		SecurePort:       nil,
-		CountryId:        0,
+		App:              app,
+		IpAddr:           ip,
+		Status:           "UP",      // TODO: enum
+		OverriddenStatus: "UNKNOWN", // TODO: enum
+		Port: &Port{
+			Port:    port,
+			Enabled: "true",
+		}, // TODO: bool
+		SecurePort: nil,
+		CountryId:  0,
 		DataCenterInfo: &DataCenterInfo{
-			Class: "MyOwn",
-			Name:  "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
+			Name:  "MyOwn",
+			Class: "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo",
 		},
 		LeaseInfo: &LeaseInfo{
 			RenewalIntervalInSecs: 30,
 			DurationInSecs:        15,
 		},
+		VipAddress:       app,
+		SecureVipAddress: app,
+		Metadata: map[string]interface{}{
+			"VERSION":              "0.1.0",
+			"NODE_GROUP_ID":        0,
+			"PRODUCT_CODE":         "DEFAULT",
+			"PRODUCT_VERSION_CODE": "DEFAULT",
+			"PRODUCT_ENV_CODE":     "DEFAULT",
+			"SERVICE_VERSION_CODE": "DEFAULT",
+		},
+		HomePageUrl:   url,
+		StatusPageUrl: url + "/info",
 	}
 
 	for _, opt := range opts {
@@ -57,7 +75,7 @@ type DialOption func(clt *Client)
 
 func Dial(opts ...DialOption) *Client {
 	clt := &Client{
-		url:                          "http://admin:admin@localhost:8761/eureka/",
+		url:                          "http://admin:admin@localhost:8761/eureka",
 		RegistryFetchIntervalSeconds: 15 * time.Second,
 	}
 
@@ -120,16 +138,29 @@ func (c *Client) GetApplications(ctx context.Context) (*GetApplicationsResponse,
 // Register 注册实例
 // POST /eureka/v2/apps/appID
 func (c *Client) Register(ctx context.Context, ins *Instance) error {
-	b, err := json.Marshal(ins)
+	// Instance 服务实例
+	type InstanceInfo struct {
+		Instance *Instance `json:"instance"`
+	}
+	var info = &InstanceInfo{
+		Instance: ins,
+	}
+
+	b, err := json.Marshal(info)
 	if err != nil {
 		return fmt.Errorf("cannot marshal instance: %v", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+appURI, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+appURI+"/"+ins.App, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
-	if req.Response.StatusCode >= http.StatusBadRequest {
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := c.Do(req)
+	if err != nil {
+		return fmt.Errorf("cannot send request: %w", err)
+	}
+	if resp.StatusCode >= 400 {
 		errRes, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			return fmt.Errorf("cannot read body from response: %w", err)

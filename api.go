@@ -1,7 +1,7 @@
 package eureka_client
 
 type Port struct {
-	Field1  int    `json:"$"`
+	Port    int    `json:"$"`
 	Enabled string `json:"@enabled"`
 }
 
@@ -32,27 +32,27 @@ type Metadata struct {
 }
 
 type Instance struct {
-	InstanceId                    string          `json:"instanceId"`
-	HostName                      string          `json:"hostName"`
-	App                           string          `json:"app"`
-	IpAddr                        string          `json:"ipAddr"`
-	Status                        string          `json:"status"`
-	OverriddenStatus              string          `json:"overriddenstatus"`
-	Port                          *Port           `json:"port"`
-	SecurePort                    *SecurePort     `json:"securePort"`
-	CountryId                     int             `json:"countryId"`
-	DataCenterInfo                *DataCenterInfo `json:"dataCenterInfo"`
-	LeaseInfo                     *LeaseInfo      `json:"leaseInfo"`
-	Metadata                      *Metadata       `json:"metadata"`
-	HomePageUrl                   string          `json:"homePageUrl"`
-	StatusPageUrl                 string          `json:"statusPageUrl"`
-	HealthCheckUrl                string          `json:"healthCheckUrl"`
-	VipAddress                    string          `json:"vipAddress"`
-	SecureVipAddress              string          `json:"secureVipAddress"`
-	IsCoordinatingDiscoveryServer string          `json:"isCoordinatingDiscoveryServer"`
-	LastUpdatedTimestamp          string          `json:"lastUpdatedTimestamp"`
-	LastDirtyTimestamp            string          `json:"lastDirtyTimestamp"`
-	ActionType                    string          `json:"actionType"`
+	InstanceId                    string                 `json:"instanceId"`
+	HostName                      string                 `json:"hostName"`
+	App                           string                 `json:"app"`
+	IpAddr                        string                 `json:"ipAddr"`
+	Status                        string                 `json:"status"`
+	OverriddenStatus              string                 `json:"overriddenstatus"`
+	Port                          *Port                  `json:"port"`
+	SecurePort                    *SecurePort            `json:"securePort,omitempty"`
+	CountryId                     int                    `json:"countryId,omitempty"`
+	DataCenterInfo                *DataCenterInfo        `json:"dataCenterInfo"`
+	LeaseInfo                     *LeaseInfo             `json:"leaseInfo"`
+	Metadata                      map[string]interface{} `json:"metadata"`
+	HomePageUrl                   string                 `json:"homePageUrl"`
+	StatusPageUrl                 string                 `json:"statusPageUrl"`
+	HealthCheckUrl                string                 `json:"healthCheckUrl,omitempty"`
+	VipAddress                    string                 `json:"vipAddress"`
+	SecureVipAddress              string                 `json:"secureVipAddress"`
+	IsCoordinatingDiscoveryServer string                 `json:"isCoordinatingDiscoveryServer,omitempty"`
+	LastUpdatedTimestamp          string                 `json:"lastUpdatedTimestamp,omitempty"`
+	LastDirtyTimestamp            string                 `json:"lastDirtyTimestamp,omitempty"`
+	ActionType                    string                 `json:"actionType,omitempty"`
 }
 
 type Application struct {
