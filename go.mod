@@ -1,3 +1,3 @@
-module github.com/Jinrgan/unit-test
+module github.com/Jinrgan/eureka-client
 
 go 1.17
