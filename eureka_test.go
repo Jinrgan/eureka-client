@@ -26,7 +26,7 @@ func TestClient_Register(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cannot create instance: %v", err)
 	}
-	clt := Dial(ins, WithURL("http://admin:admin@localhost:8761/eureka"))
+	clt := Dial(ins, WithURL("http://admin:admin@localhost:8761/eureka/"))
 
 	err = clt.Register(context.Background())
 	if err != nil {

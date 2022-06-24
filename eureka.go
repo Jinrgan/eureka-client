@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const appURI = "/apps"
+const appURI = "apps/"
 
 // 调用 eureka 服务端 rest API
 // https://github.com/Netflix/eureka/wiki/Eureka-REST-operations
@@ -31,7 +31,7 @@ type DialOption func(clt *Client)
 
 func Dial(ins *Instance, opts ...DialOption) *Client {
 	clt := &Client{
-		url:                          "http://admin:admin@localhost:8761/eureka",
+		url:                          "http://admin:admin@localhost:8761/eureka/",
 		registryFetchIntervalSeconds: 15 * time.Second,
 		tickerStop:                   make(chan struct{}),
 		stop:                         make(chan struct{}),
@@ -112,7 +112,7 @@ func (c *Client) Register(ctx context.Context) error {
 		return fmt.Errorf("cannot marshal instance: %v", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+appURI+"/"+c.instance.App, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+appURI+c.instance.App, bytes.NewReader(b))
 	if err != nil {
 		return fmt.Errorf("cannot create new request: %w", err)
 	}
@@ -126,7 +126,7 @@ func (c *Client) Register(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("cannot read body from response: %w", err)
 		}
-		return fmt.Errorf("cannot register app: %v", errRes)
+		return fmt.Errorf("cannot register app: %s", errRes)
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func (c *Client) Register(ctx context.Context) error {
 // Heartbeat 发送心跳
 // PUT /eureka/v2/apps/appID/instanceID
 func (c *Client) Heartbeat(ctx context.Context) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.url+appURI+"/"+c.instance.App+"/"+c.instance.InstanceId, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.url+appURI+c.instance.App+"/"+c.instance.InstanceId, bytes.NewReader([]byte{'O', 'K'}))
 	if err != nil {
 		return fmt.Errorf("cannot create new request: %w", err)
 	}

@@ -8,7 +8,7 @@ import (
 const metadataVersionKey = "VERSION"
 
 type Port struct {
-	Port    int    `json:"$"`
+	Port    uint16 `json:"$"`
 	Enabled string `json:"@enabled"`
 }
 
@@ -64,7 +64,7 @@ type Instance struct {
 
 type InstanceOption func(ins *Instance)
 
-func NewInstance(app string, port int, opts ...InstanceOption) (*Instance, error) {
+func NewInstance(app string, port uint16, opts ...InstanceOption) (*Instance, error) {
 	app = strings.ToLower(app)
 	ip, ok := GetLocalIP()
 	if !ok {
