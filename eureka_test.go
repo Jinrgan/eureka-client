@@ -22,7 +22,7 @@ func TestClient_GetApplications(t *testing.T) {
 }
 
 func TestClient_Register(t *testing.T) {
-	ins, err := NewInstance("go-module", 8081)
+	ins, err := NewInstance("go-module", 8081, WithIP("192.168.2.84"), WithVersion("1.0.0"))
 	if err != nil {
 		t.Fatalf("cannot create instance: %v", err)
 	}

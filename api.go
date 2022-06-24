@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const metadataVersionKey = "VERSION"
+
 type Port struct {
 	Port    int    `json:"$"`
 	Enabled string `json:"@enabled"`
@@ -93,7 +95,7 @@ func NewInstance(app string, port int, opts ...InstanceOption) (*Instance, error
 		VipAddress:       app,
 		SecureVipAddress: app,
 		Metadata: map[string]interface{}{
-			"VERSION":              "0.1.0",
+			metadataVersionKey:     "0.1.0",
 			"NODE_GROUP_ID":        0,
 			"PRODUCT_CODE":         "DEFAULT",
 			"PRODUCT_VERSION_CODE": "DEFAULT",
@@ -121,6 +123,12 @@ func WithIP(ip string) InstanceOption {
 		ins.IpAddr = ip
 		ins.HomePageUrl = url
 		ins.StatusPageUrl = url + "/info"
+	}
+}
+
+func WithVersion(v string) InstanceOption {
+	return func(ins *Instance) {
+		ins.Metadata[metadataVersionKey] = v
 	}
 }
 
